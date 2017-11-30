@@ -41,13 +41,19 @@ echo "Kernel revision is "$KERNEL_REV
 
 cd linux
 git checkout $KERNEL_REV
+cd ..
 
-#for file in patches/*
-#do
-#  patch -p1 < "$file"
-#done
+for file in patches/$KERNEL_VERSION/*
+   do
+	PATCH=`echo $file| rev | cut -d/ -f1 | rev`
+	cp $file linux/
+	echo Applying $PATCH
+	cd linux
+	patch -p1 < "$PATCH"
+	rm $PATCH
+	cd ..
+done
 
-#cd linux
 
 
 #KERNEL=kernel
@@ -58,3 +64,15 @@ git checkout $KERNEL_REV
 #make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
 
 
+### ARCHIVE CREATION
+mkdir ../kernel-4.9.65
+mkdir ../kernel-4.9.65/boot
+../kernel-4.9.65/boot/overlays
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=/home/volumio/custom-kernel-pi/kernel-4.9.65 modules_install
+rm /home/volumio/custom-kernel-pi/kernel-4.9.65/lib/modules/4.9.65-v7+/build
+rm /home/volumio/custom-kernel-pi/kernel-4.9.65/lib/modules/4.9.65-v7+/source
+cp arch/arm/boot/zImage ../kernel-4.9.65/boot/$KERNEL.img
+cp arch/arm/boot/dts/*.dtb ../kernel-4.9.65/boot/
+cp arch/arm/boot/dts/overlays/*.dtb* ../kernel-4.9.65/boot/overlays
+cp arch/arm/boot/dts/overlays/README ../kernel-4.9.65/boot/overlays
+tar zcvf /home/volumio/custom-kernel-pi/pi-kernel-4.9.65.tar.gz -C /home/volumio/custom-kernel-pi/kernel-4.9.65 .
