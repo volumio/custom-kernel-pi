@@ -1,7 +1,8 @@
 #!/bin/sh
 
 KERNEL_VERSION=$1
-
+WORKDIR=$PWD
+ARCH=`uname -m`
 
 case $KERNEL_VERSION in
     "4.4.9")
@@ -21,58 +22,25 @@ case $KERNEL_VERSION in
       ;;  
 esac
 
-
-if [ ! -d tools ]; then
-  git clone https://github.com/raspberrypi/tools
-fi
-
-
-if [ ! -d linux ]; then
-  git clone https://github.com/raspberrypi/linux
-fi
-
-echo PATH=\$PATH:~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin >> ~/.bashrc
-source ~/.bashrc
+#if [ `getconf LONG_BIT` = "64" ]; then
+  #PATH=\$PATH:$WORKDIR/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
+#else
+  #PATH=\$PATH:$WORKDIR/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin
+#fi
 
 
 echo "Firmware revision is"  $FIRMWARE_COMMIT
 KERNEL_REV=`curl -L https://github.com/Hexxeh/rpi-firmware/raw/${FIRMWARE_COMMIT}/git_hash`
 echo "Kernel revision is "$KERNEL_REV
 
-cd linux
-git checkout $KERNEL_REV
-cd ..
+echo "Preparing environment"
+$WORKDIR/prepare $KERNEL_REV
 
-for file in patches/$KERNEL_VERSION/*
-   do
-	PATCH=`echo $file| rev | cut -d/ -f1 | rev`
-	cp $file linux/
-	echo Applying $PATCH
-	cd linux
-	patch -p1 < "$PATCH"
-	rm $PATCH
-	cd ..
-done
+echo "Applying Patches"
+$WORKDIR/apply-patches $KERNEL_VERSION
 
+echo "Compiling Kernel"
+$WORKDIR/compile 
 
-
-#KERNEL=kernel
-#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcmrpi_defconfig
-
-
-#KERNEL=kernel7
-#make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
-
-
-### ARCHIVE CREATION
-mkdir ../kernel-4.9.65
-mkdir ../kernel-4.9.65/boot
-../kernel-4.9.65/boot/overlays
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=/home/volumio/custom-kernel-pi/kernel-4.9.65 modules_install
-rm /home/volumio/custom-kernel-pi/kernel-4.9.65/lib/modules/4.9.65-v7+/build
-rm /home/volumio/custom-kernel-pi/kernel-4.9.65/lib/modules/4.9.65-v7+/source
-cp arch/arm/boot/zImage ../kernel-4.9.65/boot/$KERNEL.img
-cp arch/arm/boot/dts/*.dtb ../kernel-4.9.65/boot/
-cp arch/arm/boot/dts/overlays/*.dtb* ../kernel-4.9.65/boot/overlays
-cp arch/arm/boot/dts/overlays/README ../kernel-4.9.65/boot/overlays
-tar zcvf /home/volumio/custom-kernel-pi/pi-kernel-4.9.65.tar.gz -C /home/volumio/custom-kernel-pi/kernel-4.9.65 .
+echo "Create Kernel Archive"
+$WORKDIR/create-archive $KERNEL_VERSION

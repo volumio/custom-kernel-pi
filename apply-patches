@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#KERNEL_VERSION=$1
+KERNEL_VERSION="4.9.65"
+
+
+cd linux
+git stash
+cd ..
+
+for file in patches/$KERNEL_VERSION/*
+do
+PATCH=`echo $file| rev | cut -d/ -f1 | rev`
+
+cp $file linux/
+echo Applying $PATCH
+cd linux
+patch -p1 -t < "$PATCH"
+rm $PATCH
+cd ..
+done
+
+echo "Done Applying patches"

@@ -1,0 +1,39 @@
+#!/bin/sh
+
+WORKDIR=$PWD
+#KERNEL_VERSION=$1
+KERNEL_VERSION="4.9.65"
+
+if [ ! -d $WORKDIR/kernel-$KERNEL_VERSION ]; then
+  echo "Creating Kernel Archive Folder"
+else
+  echo "Cleaning Kernel Archive Folder"
+  rm -rf $WORKDIR/kernel-$KERNEL_VERSION/*
+fi
+
+
+### ARCHIVE CREATION
+mkdir $WORKDIR/kernel-$KERNEL_VERSION/boot
+mkdir $WORKDIR/kernel-$KERNEL_VERSION/boot/overlays
+cd linux
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=$WORKDIR/kernel-${KERNEL_VERSION} modules_install
+cd ..
+##COMPILED STUFF
+rm $WORKDIR/kernel-$KERNEL_VERSION/lib/modules/${KERNEL_VERSION}-v7+/build
+rm $WORKDIR/kernel-4.9.65/lib/modules/${KERNEL_VERSION}-v7+/source
+cp $WORKDIR/linux/arch/arm/boot/zImage $WORKDIR/kernel-$KERNEL_VERSION/boot/kernel.img
+cp $WORKDIR/linux/arch/arm/boot/zImage $WORKDIR/kernel-$KERNEL_VERSION/boot/kernel7.img
+cp $WORKDIR/linux/arch/arm/boot/dts/*.dtb $WORKDIR/kernel-$KERNEL_VERSION/boot/
+cp $WORKDIR/linux/arch/arm/boot/dts/overlays/*.dtb* $WORKDIR/kernel-$KERNEL_VERSION/boot/overlays
+cp $WORKDIR/linux/arch/arm/boot/dts/overlays/README $WORKDIR/kernel-$KERNEL_VERSION/boot/overlays
+##FIRMWARE
+cp $WORKDIR/rpi-firmware/*.bin $WORKDIR/kernel-$KERNEL_VERSION/boot/
+cp $WORKDIR/rpi-firmware/*.dat $WORKDIR/kernel-$KERNEL_VERSION/boot/
+cp $WORKDIR/rpi-firmware/*.elf $WORKDIR/kernel-$KERNEL_VERSION/boot/
+
+if [ -d $WORKDIR/pi-kernel-$KERNEL_VERSION.tar.gz ]; then
+  rm $WORKDIR/pi-kernel-$KERNEL_VERSION.tar.gz
+fi
+
+tar zcf $WORKDIR/pi-kernel-$KERNEL_VERSION.tar.gz -C $WORKDIR/kernel-$KERNEL_VERSION .
+

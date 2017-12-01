@@ -1,0 +1,26 @@
+#!/bin/sh
+
+WORKDIR=$PWD
+KERNEL_REV=$1
+
+if [ ! -d tools ]; then
+  echo "Cloning Raspberry PI TOOLS"
+  git clone https://github.com/raspberrypi/tools $WORKDIR/tools
+fi
+
+if [ ! -d linux ]; then
+  echo "Cloning kernel source"
+  git clone https://github.com/raspberrypi/linux $WORKDIR/linux
+fi
+
+if [ ! -d rpi-firmware ]; then
+  echo "Cloning firmware"
+  git clone -b master --single-branch https://github.com/Hexxeh/rpi-firmware $WORKDIR/rpi-firmware
+fi
+
+cd linux
+echo "Checking Out Revision"
+git checkout $KERNEL_REV
+cd ..
+echo "Done Preparing Env"
+

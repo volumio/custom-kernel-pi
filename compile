@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cd linux
+KERNEL=kernel
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcmrpi_defconfig
+
+KERNEL=kernel7
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
+
+make -j 4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage modules dtbs
+
+echo "Done compiling kernel"
