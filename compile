@@ -1,12 +1,33 @@
 #!/bin/sh
+WORKDIR=$PWD
+#KERNEL_VERSION=$1
+KERNEL_VERSION="4.9.65"
 
+if [ ! -d $WORKDIR/kernel-$KERNEL_VERSION ]; then
+  echo "Creating Kernel Archive Folder"
+else
+  echo "Cleaning Kernel Archive Folder"
+  rm -rf $WORKDIR/kernel-$KERNEL_VERSION/*
+fi
+
+echo "Compiling for armv6"
 cd linux
 KERNEL=kernel
+cp arch/arm/configs/bcmrpi_defconfig arch/arm/configs/bcmrpi_defconfig.bak
+#cp $WORKDIR/configurations/$KERNEL_VERSION/rt-kernel $WORKDIR/linux/arch/arm/configs/bcmrpi_defconfig
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcmrpi_defconfig
+make -j 4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage modules dtb
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=$WORKDIR/kernel-${KERNEL_VERSION} modules_install
 
+make clean
+
+echo "Compiling for armv7"
 KERNEL=kernel7
+cp arch/arm/configs/bcm2709_defconfig arch/arm/configs/bcm2709_defconfig.bak
+#cp $WORKDIR/configurations/$KERNEL_VERSION/rt-kernel7 $WORKDIR/linux/arch/arm/configs/bcm2709_defconfig
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
-
 make -j 4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage modules dtbs
 
-echo "Done compiling kernel"
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=$WORKDIR/kernel-${KERNEL_VERSION} modules_install
+cd ..
+
