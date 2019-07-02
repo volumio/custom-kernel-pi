@@ -28,6 +28,7 @@ index 7613b9e..4a8fc40 100644
 -		break;
 -	}
 +        switch (chip->usb_id) {
++   	 case USB_ID(0x2772, 0x0229): /* Pro-Ject DAC Box S2+ */
 +        case USB_ID(0x20b1, 0x3008): /* iFi Audio micro/nano iDSD */
 +        case USB_ID(0x20b1, 0x2008): /* Matrix Audio X-Sabre */
 +        case USB_ID(0x20b1, 0x300a): /* Matrix Audio Mini-i Pro */
